@@ -9,12 +9,25 @@
 
 ```graphql
 type Query {
-  essay(id: ID!): String
-  authorName: String
-  authorAge: String
-  authorSex: Sex
-  comments(essayId: ID!): [Comment!]
+  essays: [Essay!]
+  about: About
 }
+
+type Essay {
+  essayId: ID
+  title: String
+  body: String
+  comments:  [Comment!]
+  createTime: Int
+  updateTime: Int
+}
+
+type About {
+  name: String
+  age: String
+  sex: Sex
+}
+```
 
 enum Sex {
   MALE
@@ -26,5 +39,3 @@ type Comment {
   mail: String
   content: String
 }
-```
-
