@@ -27,7 +27,6 @@ type About {
   age: String
   sex: Sex
 }
-```
 
 enum Sex {
   MALE
@@ -39,3 +38,4 @@ type Comment {
   mail: String
   content: String
 }
+```
