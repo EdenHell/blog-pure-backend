@@ -8,34 +8,34 @@
 ## SGSFB
 
 ```graphql
-type Query {
-  essays: [Essay!]
-  about: About
-}
-
-type Essay {
-  essayId: ID
-  title: String
-  body: String
-  comments:  [Comment!]
-  createTime: Int
-  updateTime: Int
-}
-
-type About {
-  name: String
-  age: String
-  sex: Sex
-}
-
-enum Sex {
-  MALE
-  FEMALE
-}
-
 type Comment {
   name: String
   mail: String
   content: String
+  createTime: DateTime
+}
+
+type Essay {
+  essayId: Int
+  title: String
+  labels: [String!]
+  body: String
+  comments:  [Comment!]
+  createTime: DateTime
+  updateTime: DateTime
+}
+
+type About {
+  name: String
+  age: Int
+  sex: String
+  github: String
+  mail: String
+}
+
+type Query {
+  essays(first: Int, after: Int): [Essay!]
+  labels: [String!]
+  about: About
 }
 ```
