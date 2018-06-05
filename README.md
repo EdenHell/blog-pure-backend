@@ -18,7 +18,7 @@ type Comment {
 type Essay {
   essayId: Int
   title: String
-  labels: [String!]
+  tags: [String!]
   body: String
   comments:  [Comment!]
   createTime: DateTime
@@ -35,7 +35,7 @@ type About {
 
 type Query {
   essays(first: Int, after: Int): [Essay!]
-  labels: [String!]
+  tags: [String!]
   about: About
 }
 ```

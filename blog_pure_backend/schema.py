@@ -13,7 +13,7 @@ class Comment(graphene.ObjectType):
 class Essay(graphene.ObjectType):
     essay_id = graphene.Field(graphene.Int)
     title = graphene.Field(graphene.String)
-    labels = graphene.List(graphene.NonNull(graphene.String))
+    tags = graphene.List(graphene.NonNull(graphene.String))
     body = graphene.Field(graphene.String)
     comments = graphene.List(graphene.NonNull(Comment))
     create_time = graphene.Field(graphene.types.datetime.DateTime)
@@ -32,7 +32,7 @@ class About(graphene.ObjectType):
 # noinspection PyUnusedLocal
 class Query(graphene.ObjectType):
     essays = graphene.Field(graphene.List(graphene.NonNull(Essay)), first=graphene.Int(), after=graphene.Int())
-    labels = graphene.Field(graphene.List(graphene.NonNull(graphene.String)))
+    tags = graphene.Field(graphene.List(graphene.NonNull(graphene.String)))
     about = graphene.Field(About)
 
     def resolve_essays(self, info, first, after):
@@ -40,7 +40,7 @@ class Query(graphene.ObjectType):
         essays = [Essay(
             essay_id=row.id,
             title=row.title,
-            labels=['标签1', '标签2'],
+            tags=['标签1', '标签2'],
             body=row.content,
             comments=[Comment(name='', mail='', content='', create_time=datetime.now())],
             create_time=row.create_time,
