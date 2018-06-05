@@ -1,4 +1,5 @@
 import graphene
+from datetime import datetime
 from .database import meta, session
 
 
@@ -41,7 +42,7 @@ class Query(graphene.ObjectType):
             title=row.title,
             labels=['标签1', '标签2'],
             body=row.content,
-            comments=[Comment(name='', mail='', content='', create_time='')],
+            comments=[Comment(name='', mail='', content='', create_time=datetime.now())],
             create_time=row.create_time,
             update_time=row.update_time
         ) for row in session.execute(essay_table.select().where(essay_table.c.id > after).limit(first))]
