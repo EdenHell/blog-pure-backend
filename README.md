@@ -8,34 +8,43 @@
 ## SGSFB
 
 ```graphql
+scalar YearTime
+
+input EssayFilter {
+    first: Int!
+    after: Int
+    tag: String
+    yearTime: YearTime
+}
+
+
 type Comment {
-  name: String
-  mail: String
-  content: String
-  createTime: DateTime
+    name: String
+    mail: String
+    content: String
+    createTime: DateTime
 }
 
 type Essay {
-  essayId: Int
-  title: String
-  tags: [String!]
-  body: String
-  comments:  [Comment!]
-  createTime: DateTime
-  updateTime: DateTime
+    essayId: Int
+    title: String
+    body: String
+    createTime: DateTime
+    updateTime: DateTime
 }
 
 type About {
-  name: String
-  age: Int
-  sex: String
-  github: String
-  mail: String
+    name: String
+    age: Int
+    sex: String
+    github: String
+    mail: String
 }
 
 type Query {
-  essays(first: Int, after: Int): [Essay!]
-  tags: [String!]
-  about: About
+    essays(essayFilter: EssayFilter!): [Essay!]!
+    tags(essayId: Int): [String!]!
+    comments(essayId: Int!): [Comment!]!
+    about: About
 }
 ```
