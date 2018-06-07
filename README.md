@@ -17,14 +17,6 @@ input EssayFilter {
     yearTime: YearTime
 }
 
-
-type Comment {
-    name: String
-    mail: String
-    content: String
-    createTime: DateTime
-}
-
 type Essay {
     essayId: Int
     title: String
@@ -44,7 +36,6 @@ type About {
 type Query {
     essays(essayFilter: EssayFilter!): [Essay!]!
     tags(essayId: Int): [String!]!
-    comments(essayId: Int!): [Comment!]!
     about: About
 }
 ```

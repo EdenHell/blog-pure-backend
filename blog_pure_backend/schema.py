@@ -32,13 +32,6 @@ class EssayFilter(graphene.InputObjectType):
     year_time = graphene.Field(YearTime)
 
 
-class Comment(graphene.ObjectType):
-    name = graphene.Field(graphene.String)
-    mail = graphene.Field(graphene.String)
-    content = graphene.Field(graphene.String)
-    create_time = graphene.Field(graphene.types.datetime.DateTime)
-
-
 class Essay(graphene.ObjectType):
     essay_id = graphene.Field(graphene.Int)
     title = graphene.Field(graphene.String)
@@ -62,8 +55,6 @@ class Query(graphene.ObjectType):
                             essay_filter=EssayFilter(required=True))
     tags = graphene.Field(graphene.NonNull(graphene.List(graphene.NonNull(graphene.String))),
                           essay_id=graphene.Int())
-    comments = graphene.Field(graphene.NonNull(graphene.List(graphene.NonNull(Comment))),
-                              essay_id=graphene.Int(required=True))
     about = graphene.Field(About)
 
     def resolve_essays(self, info, essay_filter):
@@ -97,12 +88,6 @@ class Query(graphene.ObjectType):
         else:
             where_stmt = tags_table.c.is_category == 0
         return [r.name for r in session.execute(tags_table.select().where(where_stmt).group_by(tags_table.c.name))]
-
-    def resolve_comments(self, info, essay_id):
-        comment_table = meta.tables['comment']
-        return [Comment(
-            name=r.name, mail=r.mail, content=r.content, create_time=r.create_time
-        ) for r in session.execute(comment_table.select().where(comment_table.c.essay_id == essay_id))]
 
     def resolve_about(self, info):
         row = session.execute(meta.tables['about'].select()).fetchone()
