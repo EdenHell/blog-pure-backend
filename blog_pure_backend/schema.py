@@ -1,4 +1,5 @@
 from datetime import datetime
+import hashlib
 from sqlalchemy import and_
 import graphene
 from graphene.types import Scalar
@@ -6,6 +7,8 @@ from graphene.types import Scalar
 from graphql.language import ast
 
 from .database import meta, session
+
+salt = 'sc&#of78'
 
 
 class YearTime(Scalar):
@@ -92,6 +95,13 @@ class Query(graphene.ObjectType):
     def resolve_about(self, info):
         row = session.execute(meta.tables['about'].select()).fetchone()
         return About(name=row.name, age=row.age, sex=row.sex, github=row.github, mail=row.mail)
+
+
+def verify_password(s):
+    p = session.execute(meta.tables['password'].select()).fetchone()
+    if p is None:
+        return False
+    return p.value == hashlib.sha256((salt + s + salt).encode()).hexdigest()
 
 
 schema = graphene.Schema(query=Query)
