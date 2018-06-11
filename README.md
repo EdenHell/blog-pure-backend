@@ -8,17 +8,32 @@
 ## SGSFB
 
 ```graphql
+schema {
+    query: Query
+    mutation: Mutation
+}
+
+type Query {
+    essays(essayFilter: EssayFilter!): [Essay!]!
+    tags(essayId: Int): [String!]!
+    about: About
+}
+
+type Mutation {
+    createEssay(password: Stringtitle: Stringbody: String): CreateEssay
+}
+
 scalar YearTime
 
 input EssayFilter {
-    first: Int!
-    after: Int
+    offset: Int!
+    limit: Int!
     tag: String
     yearTime: YearTime
 }
 
 type Essay {
-    essayId: Int
+    essayId: String
     title: String
     body: String
     createTime: DateTime
@@ -33,9 +48,7 @@ type About {
     mail: String
 }
 
-type Query {
-    essays(essayFilter: EssayFilter!): [Essay!]!
-    tags(essayId: Int): [String!]!
-    about: About
+type CreateEssay {
+    essayId: String
 }
 ```

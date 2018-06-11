@@ -1,5 +1,6 @@
 from datetime import datetime
 import hashlib
+import uuid
 from sqlalchemy import and_
 import graphene
 from graphene.types import Scalar
@@ -29,14 +30,14 @@ class YearTime(Scalar):
 
 
 class EssayFilter(graphene.InputObjectType):
-    first = graphene.Field(graphene.Int, required=True)
-    after = graphene.Field(graphene.Int, default_value=0)
+    offset = graphene.Field(graphene.Int, required=True)
+    limit = graphene.Field(graphene.Int, required=True)
     tag = graphene.Field(graphene.String)
     year_time = graphene.Field(YearTime)
 
 
 class Essay(graphene.ObjectType):
-    essay_id = graphene.Field(graphene.Int)
+    essay_id = graphene.Field(graphene.String)
     title = graphene.Field(graphene.String)
     body = graphene.Field(graphene.String)
     create_time = graphene.Field(graphene.types.datetime.DateTime)
@@ -57,12 +58,12 @@ class Query(graphene.ObjectType):
     essays = graphene.Field(graphene.NonNull(graphene.List(graphene.NonNull(Essay))),
                             essay_filter=EssayFilter(required=True))
     tags = graphene.Field(graphene.NonNull(graphene.List(graphene.NonNull(graphene.String))),
-                          essay_id=graphene.Int())
+                          essay_id=graphene.String())
     about = graphene.Field(About)
 
     def resolve_essays(self, info, essay_filter):
-        first, after = essay_filter.first, essay_filter.after
-        if first < 0 or after < 0:
+        offset, limit = essay_filter.offset, essay_filter.limit
+        if offset < 0 or offset < 0:
             raise Exception('参数错误')
         essay_table, tags_table = meta.tables['essay'], meta.tables['tags']
         select_essay_stmt = essay_table.select()
@@ -73,15 +74,15 @@ class Query(graphene.ObjectType):
             ))
         if essay_filter.tag:
             select_essay_stmt = select_essay_stmt.where(and_(
-                tags_table.c.essay_id == essay_table.c.id, tags_table.c.name == essay_filter.tag
+                tags_table.c.essay_id == essay_table.c.essay_id, tags_table.c.name == essay_filter.tag
             ))
         essays = [Essay(
-            essay_id=row.id,
+            essay_id=row.essay_id,
             title=row.title,
             body=row.content,
             create_time=row.create_time,
             update_time=row.update_time
-        ) for row in session.execute(select_essay_stmt.where(essay_table.c.id > after).limit(first))]
+        ) for row in session.execute(select_essay_stmt.offset(offset).limit(limit))]
         return essays
 
     def resolve_tags(self, info, essay_id=None):
@@ -104,4 +105,30 @@ def verify_password(s):
     return p.value == hashlib.sha256((salt + s + salt).encode()).hexdigest()
 
 
-schema = graphene.Schema(query=Query)
+# noinspection PyMethodMayBeStatic
+# noinspection PyUnusedLocal
+class CreateEssay(graphene.Mutation):
+    class Arguments:
+        password = graphene.String()
+        title = graphene.String()
+        body = graphene.String()
+
+    essay_id = graphene.Field(graphene.String)
+
+    def mutate(self, info, password, title, body):
+        if not verify_password(password):
+            raise Exception('Incorrect password!')
+        essay_id = uuid.uuid1()
+        session.execute(
+            meta.tables['essay'].insert(),
+            {'essay_id': essay_id, 'title': title, 'content': body, 'create_time': datetime.now()}
+        )
+        session.commit()
+        return CreateEssay(essay_id=essay_id)
+
+
+class Mutation(graphene.ObjectType):
+    create_essay = CreateEssay.Field()
+
+
+schema = graphene.Schema(query=Query, mutation=Mutation)
