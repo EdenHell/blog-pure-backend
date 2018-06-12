@@ -29,15 +29,15 @@ class YearTime(Scalar):
         return datetime.strptime(value, "%Y")
 
 
-class EssayFilter(graphene.InputObjectType):
+class PostFilter(graphene.InputObjectType):
     offset = graphene.Field(graphene.Int, required=True)
     limit = graphene.Field(graphene.Int, required=True)
     tag = graphene.Field(graphene.String)
     year_time = graphene.Field(YearTime)
 
 
-class Essay(graphene.ObjectType):
-    essay_id = graphene.Field(graphene.String)
+class Post(graphene.ObjectType):
+    post_id = graphene.Field(graphene.String)
     title = graphene.Field(graphene.String)
     body = graphene.Field(graphene.String)
     create_time = graphene.Field(graphene.types.datetime.DateTime)
@@ -55,40 +55,40 @@ class About(graphene.ObjectType):
 # noinspection PyMethodMayBeStatic
 # noinspection PyUnusedLocal
 class Query(graphene.ObjectType):
-    essays = graphene.Field(graphene.NonNull(graphene.List(graphene.NonNull(Essay))),
-                            essay_filter=EssayFilter(required=True))
+    posts = graphene.Field(graphene.NonNull(graphene.List(graphene.NonNull(Post))),
+                           post_filter=PostFilter(required=True))
     tags = graphene.Field(graphene.NonNull(graphene.List(graphene.NonNull(graphene.String))),
-                          essay_id=graphene.String())
+                          post_id=graphene.String())
     about = graphene.Field(About)
 
-    def resolve_essays(self, info, essay_filter):
-        offset, limit = essay_filter.offset, essay_filter.limit
+    def resolve_posts(self, info, post_filter):
+        offset, limit = post_filter.offset, post_filter.limit
         if offset < 0 or offset < 0:
             raise Exception('参数错误')
-        essay_table, tags_table = meta.tables['essay'], meta.tables['tags']
-        select_essay_stmt = essay_table.select()
-        if essay_filter.year_time:
-            end_year = datetime(year=essay_filter.year_time.year+1, month=1, day=1)
-            select_essay_stmt = select_essay_stmt.where(and_(
-                essay_table.c.create_time > essay_filter.year_time, essay_table.c.create_time < end_year
+        post_table, tags_table = meta.tables['posts'], meta.tables['tags']
+        select_post_stmt = post_table.select()
+        if post_filter.year_time:
+            end_year = datetime(year=post_filter.year_time.year+1, month=1, day=1)
+            select_post_stmt = select_post_stmt.where(and_(
+                post_table.c.create_time > post_filter.year_time, post_table.c.create_time < end_year
             ))
-        if essay_filter.tag:
-            select_essay_stmt = select_essay_stmt.where(and_(
-                tags_table.c.essay_id == essay_table.c.essay_id, tags_table.c.name == essay_filter.tag
+        if post_filter.tag:
+            select_post_stmt = select_post_stmt.where(and_(
+                tags_table.c.post_id == post_table.c.post_id, tags_table.c.name == post_filter.tag
             ))
-        essays = [Essay(
-            essay_id=row.essay_id,
+        posts = [Post(
+            post_id=row.post_id,
             title=row.title,
-            body=row.content,
+            body=row.body,
             create_time=row.create_time,
             update_time=row.update_time
-        ) for row in session.execute(select_essay_stmt.offset(offset).limit(limit))]
-        return essays
+        ) for row in session.execute(select_post_stmt.offset(offset).limit(limit))]
+        return posts
 
-    def resolve_tags(self, info, essay_id=None):
+    def resolve_tags(self, info, post_id=None):
         tags_table = meta.tables['tags']
-        if essay_id:
-            where_stmt = and_(tags_table.c.essay_id == essay_id, tags_table.c.is_category == 0)
+        if post_id:
+            where_stmt = and_(tags_table.c.post_id == post_id, tags_table.c.is_category == 0)
         else:
             where_stmt = tags_table.c.is_category == 0
         return [r.name for r in session.execute(tags_table.select().where(where_stmt).group_by(tags_table.c.name))]
@@ -107,58 +107,58 @@ def verify_password(s):
 
 # noinspection PyMethodMayBeStatic
 # noinspection PyUnusedLocal
-class CreateEssay(graphene.Mutation):
+class CreatePost(graphene.Mutation):
     class Arguments:
         password = graphene.Argument(graphene.String, required=True)
         title = graphene.Argument(graphene.String, required=True)
         body = graphene.Argument(graphene.String, required=True)
 
-    essay_id = graphene.Field(graphene.String)
+    post_id = graphene.Field(graphene.String)
     ok = graphene.Field(graphene.Boolean)
     message = graphene.Field(graphene.String)
 
     def mutate(self, info, password, title, body):
         if not verify_password(password):
-            return CreateEssay(essay_id=None, ok=False, message='Incorrect password!')
-        essay_id = uuid.uuid1()
+            return CreatePost(post_id=None, ok=False, message='Incorrect password!')
+        post_id = uuid.uuid1()
         session.execute(
-            meta.tables['essay'].insert(),
-            {'essay_id': essay_id, 'title': title, 'content': body, 'create_time': datetime.now()}
+            meta.tables['posts'].insert(),
+            {'post_id': post_id, 'title': title, 'body': body, 'create_time': datetime.now()}
         )
         session.commit()
-        return CreateEssay(essay_id=essay_id, ok=True, message='Success')
+        return CreatePost(post_id=post_id, ok=True, message='Success')
 
 
 # noinspection PyMethodMayBeStatic
 # noinspection PyUnusedLocal
-class UpdateEssay(graphene.Mutation):
+class UpdatePost(graphene.Mutation):
     class Arguments:
         password = graphene.Argument(graphene.String, required=True)
-        essay_id = graphene.Argument(graphene.String, required=True)
+        post_id = graphene.Argument(graphene.String, required=True)
         title = graphene.Argument(graphene.String)
         body = graphene.Argument(graphene.String)
 
     ok = graphene.Field(graphene.Boolean)
     message = graphene.Field(graphene.String)
 
-    def mutate(self, info, password, essay_id, title, body):
+    def mutate(self, info, password, post_id, title=None, body=None):
         if not verify_password(password):
-            return CreateEssay(ok=False, message='Incorrect password!')
+            return CreatePost(ok=False, message='Incorrect password!')
         data = dict()
         if title:
             data['title'] = title
         if body:
-            data['content'] = body
-        if data and essay_id:
-            session.execute(meta.tables['essay'].update().where(meta.tables['essay'].c.essay_id == essay_id), data)
+            data['body'] = body
+        if data and post_id:
+            session.execute(meta.tables['posts'].update().where(meta.tables['posts'].c.post_id == post_id), data)
             session.commit()
-            return UpdateEssay(ok=True, message='Success')
-        return UpdateEssay(ok=False, message='Fail')
+            return UpdatePost(ok=True, message='Success')
+        return UpdatePost(ok=False, message='Fail')
 
 
 class Mutation(graphene.ObjectType):
-    create_essay = CreateEssay.Field()
-    update_essay = UpdateEssay.Field()
+    create_post = CreatePost.Field()
+    update_post = UpdatePost.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

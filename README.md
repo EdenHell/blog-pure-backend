@@ -14,27 +14,27 @@ schema {
 }
 
 type Query {
-    essays(essayFilter: EssayFilter!): [Essay!]!
-    tags(essayId: Int): [String!]!
+    posts(postFilter: PostFilter!): [Post!]!
+    tags(postId: Int): [String!]!
     about: About
 }
 
 type Mutation {
-    createEssay(password: String! title: String! body: String!): CreateEssay
-    updateEssay(password: String! essayId: String! title: Stringbody: String): UpdateEssay
+    createPost(password: String! title: String! body: String!): CreatePost
+    updatePost(password: String! postId: String! title: String body: String): UpdatePost
 }
 
 scalar YearTime
 
-input EssayFilter {
+input PostFilter {
     offset: Int!
     limit: Int!
     tag: String
     yearTime: YearTime
 }
 
-type Essay {
-    essayId: String
+type Post {
+    postId: String
     title: String
     body: String
     createTime: DateTime
@@ -49,11 +49,11 @@ type About {
     mail: String
 }
 
-type CreateEssay {
-    essayId: String
+type CreatePost {
+    postId: String
 }
 
-type updateEssay {
+type UpdatePost {
     ok: Boolean
     message: String
 }
