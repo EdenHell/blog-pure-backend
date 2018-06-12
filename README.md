@@ -17,6 +17,7 @@ type Query {
     posts(postFilter: PostFilter!): [Post!]!
     tags(postId: Int): [String!]!
     about: About
+    adminAuth(password: String!): AuthResult!
 }
 
 type Mutation {
@@ -25,6 +26,11 @@ type Mutation {
 }
 
 scalar YearTime
+
+enum AuthResult {
+    SUCCESS
+    FAILURE
+}
 
 input PostFilter {
     offset: Int!

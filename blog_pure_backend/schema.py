@@ -29,6 +29,11 @@ class YearTime(Scalar):
         return datetime.strptime(value, "%Y")
 
 
+class AuthResult(graphene.Enum):
+    SUCCESS = True
+    FAILURE = False
+
+
 class PostFilter(graphene.InputObjectType):
     offset = graphene.Field(graphene.Int, required=True)
     limit = graphene.Field(graphene.Int, required=True)
@@ -60,6 +65,7 @@ class Query(graphene.ObjectType):
     tags = graphene.Field(graphene.NonNull(graphene.List(graphene.NonNull(graphene.String))),
                           post_id=graphene.String())
     about = graphene.Field(About)
+    admin_auth = graphene.Field(graphene.NonNull(AuthResult), password=graphene.String(required=True))
 
     def resolve_posts(self, info, post_filter):
         offset, limit = post_filter.offset, post_filter.limit
@@ -96,6 +102,9 @@ class Query(graphene.ObjectType):
     def resolve_about(self, info):
         row = session.execute(meta.tables['about'].select()).fetchone()
         return About(name=row.name, age=row.age, sex=row.sex, github=row.github, mail=row.mail)
+
+    def resolve_admin_auth(self, info, password):
+        return verify_password(password)
 
 
 def verify_password(s):
