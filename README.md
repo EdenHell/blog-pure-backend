@@ -20,8 +20,8 @@ type Query {
 }
 
 type Mutation {
-    createEssay(password: String!title: String!body: String!): CreateEssay
-    updateEssay(password: String!essayId: String!title: Stringbody: String): UpdateEssay
+    createEssay(password: String! title: String! body: String!): CreateEssay
+    updateEssay(password: String! essayId: String! title: Stringbody: String): UpdateEssay
 }
 
 scalar YearTime
