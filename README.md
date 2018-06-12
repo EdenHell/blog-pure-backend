@@ -20,7 +20,8 @@ type Query {
 }
 
 type Mutation {
-    createEssay(password: Stringtitle: Stringbody: String): CreateEssay
+    createEssay(password: String!title: String!body: String!): CreateEssay
+    updateEssay(password: String!essayId: String!title: Stringbody: String): UpdateEssay
 }
 
 scalar YearTime
@@ -50,5 +51,10 @@ type About {
 
 type CreateEssay {
     essayId: String
+}
+
+type updateEssay {
+    ok: Boolean
+    message: String
 }
 ```

@@ -109,26 +109,56 @@ def verify_password(s):
 # noinspection PyUnusedLocal
 class CreateEssay(graphene.Mutation):
     class Arguments:
-        password = graphene.String()
-        title = graphene.String()
-        body = graphene.String()
+        password = graphene.Argument(graphene.String, required=True)
+        title = graphene.Argument(graphene.String, required=True)
+        body = graphene.Argument(graphene.String, required=True)
 
     essay_id = graphene.Field(graphene.String)
+    ok = graphene.Field(graphene.Boolean)
+    message = graphene.Field(graphene.String)
 
     def mutate(self, info, password, title, body):
         if not verify_password(password):
-            raise Exception('Incorrect password!')
+            return CreateEssay(essay_id=None, ok=False, message='Incorrect password!')
         essay_id = uuid.uuid1()
         session.execute(
             meta.tables['essay'].insert(),
             {'essay_id': essay_id, 'title': title, 'content': body, 'create_time': datetime.now()}
         )
         session.commit()
-        return CreateEssay(essay_id=essay_id)
+        return CreateEssay(essay_id=essay_id, ok=True, message='Success')
+
+
+# noinspection PyMethodMayBeStatic
+# noinspection PyUnusedLocal
+class UpdateEssay(graphene.Mutation):
+    class Arguments:
+        password = graphene.Argument(graphene.String, required=True)
+        essay_id = graphene.Argument(graphene.String, required=True)
+        title = graphene.Argument(graphene.String)
+        body = graphene.Argument(graphene.String)
+
+    ok = graphene.Field(graphene.Boolean)
+    message = graphene.Field(graphene.String)
+
+    def mutate(self, info, password, essay_id, title, body):
+        if not verify_password(password):
+            return CreateEssay(ok=False, message='Incorrect password!')
+        data = dict()
+        if title:
+            data['title'] = title
+        if body:
+            data['content'] = body
+        if data and essay_id:
+            session.execute(meta.tables['essay'].update().where(meta.tables['essay'].c.essay_id == essay_id), data)
+            session.commit()
+            return UpdateEssay(ok=True, message='Success')
+        return UpdateEssay(ok=False, message='Fail')
 
 
 class Mutation(graphene.ObjectType):
     create_essay = CreateEssay.Field()
+    update_essay = UpdateEssay.Field()
 
 
 schema = graphene.Schema(query=Query, mutation=Mutation)
