@@ -6,7 +6,7 @@ from sqlalchemy import create_engine, MetaData
 
 # database_url=mysql+mysqldb://user:password@host/blog?charset=utf8mb4
 database_url = os.environ['database_url']
-engine = create_engine(database_url)
+engine = create_engine(database_url, pool_recycle=3600)
 meta = MetaData(engine)
 meta.reflect()
 session_factory = sessionmaker(bind=engine)
