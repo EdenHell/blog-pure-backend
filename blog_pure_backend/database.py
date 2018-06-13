@@ -1,4 +1,5 @@
 import os
+# noinspection PyProtectedMember
 from flask import _app_ctx_stack
 from sqlalchemy.orm import scoped_session
 from sqlalchemy.orm import sessionmaker
