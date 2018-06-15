@@ -159,6 +159,7 @@ class UpdatePost(graphene.Mutation):
         if body:
             data['body'] = body
         if data and post_id:
+            data['update_time'] = datetime.now()
             session.execute(meta.tables['posts'].update().where(meta.tables['posts'].c.post_id == post_id), data)
             session.commit()
             return UpdatePost(ok=True, message='Success')
