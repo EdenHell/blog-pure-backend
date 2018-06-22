@@ -7,7 +7,7 @@ from sqlalchemy import create_engine, MetaData
 
 # database_url=mysql+mysqlconnector://user:password@host/blog
 database_url = os.environ['database_url']
-engine = create_engine(database_url, connect_args={'use_pure': True})
+engine = create_engine(database_url, connect_args={'use_pure': False})
 meta = MetaData(engine)
 meta.reflect()
 session_factory = sessionmaker(bind=engine)
