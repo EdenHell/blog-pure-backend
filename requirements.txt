@@ -2,4 +2,3 @@ Flask_GraphQL==1.4.1
 SQLAlchemy==1.2.5
 Flask==1.0.2
 graphene==2.1.1
-mysql-connector-python==8.0.11
