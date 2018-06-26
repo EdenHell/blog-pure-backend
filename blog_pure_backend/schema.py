@@ -1,6 +1,7 @@
 from datetime import datetime
 import hashlib
 import uuid
+from sqlalchemy import select
 from sqlalchemy import and_
 import graphene
 from graphene.types import Scalar
@@ -97,7 +98,8 @@ class Query(graphene.ObjectType):
             where_stmt = and_(tags_table.c.post_id == post_id, tags_table.c.is_category == 0)
         else:
             where_stmt = tags_table.c.is_category == 0
-        return [r.name for r in session.execute(tags_table.select().where(where_stmt).group_by(tags_table.c.name))]
+        stmt = select([tags_table.c.name]).where(where_stmt).group_by(tags_table.c.name)
+        return [r.name for r in session.execute(stmt)]
 
     def resolve_about(self, info):
         row = session.execute(meta.tables['about'].select()).fetchone()
