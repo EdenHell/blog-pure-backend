@@ -8,7 +8,7 @@ from graphene.types import Scalar
 # noinspection PyPackageRequirements
 from graphql.language import ast
 
-from .database import meta, session
+from .database import metadata, session
 
 salt = 'sc&#of78'
 
@@ -72,7 +72,7 @@ class Query(graphene.ObjectType):
         offset, limit = post_filter.offset, post_filter.limit
         if offset < 0 or offset < 0:
             raise Exception('参数错误')
-        post_table, tags_table = meta.tables['posts'], meta.tables['tags']
+        post_table, tags_table = metadata.tables['posts'], metadata.tables['tags']
         select_post_stmt = post_table.select()
         if post_filter.year_time:
             end_year = datetime(year=post_filter.year_time.year+1, month=1, day=1)
@@ -93,7 +93,7 @@ class Query(graphene.ObjectType):
         return posts
 
     def resolve_tags(self, info, post_id=None):
-        tags_table = meta.tables['tags']
+        tags_table = metadata.tables['tags']
         if post_id:
             where_stmt = and_(tags_table.c.post_id == post_id, tags_table.c.is_category == 0)
         else:
@@ -102,7 +102,7 @@ class Query(graphene.ObjectType):
         return [r.name for r in session.execute(stmt)]
 
     def resolve_about(self, info):
-        row = session.execute(meta.tables['about'].select()).fetchone()
+        row = session.execute(metadata.tables['about'].select()).fetchone()
         return About(name=row.name, age=row.age, sex=row.sex, github=row.github, mail=row.mail)
 
     def resolve_admin_auth(self, info, password):
@@ -110,7 +110,7 @@ class Query(graphene.ObjectType):
 
 
 def verify_password(s):
-    p = session.execute(meta.tables['password'].select()).fetchone()
+    p = session.execute(metadata.tables['password'].select()).fetchone()
     if p is None:
         return False
     return p.value == hashlib.sha256((salt + s + salt).encode()).hexdigest()
@@ -133,7 +133,7 @@ class CreatePost(graphene.Mutation):
             return CreatePost(post_id=None, ok=False, message='Incorrect password!')
         post_id = uuid.uuid1()
         session.execute(
-            meta.tables['posts'].insert(),
+            metadata.tables['posts'].insert(),
             {'post_id': post_id, 'title': title, 'body': body, 'create_time': datetime.now()}
         )
         session.commit()
@@ -160,12 +160,12 @@ class UpdatePost(graphene.Mutation):
             data['title'] = title
         if body:
             data['body'] = body
-        if data and post_id:
-            data['update_time'] = datetime.now()
-            session.execute(meta.tables['posts'].update().where(meta.tables['posts'].c.post_id == post_id), data)
-            session.commit()
-            return UpdatePost(ok=True, message='Success')
-        return UpdatePost(ok=False, message='Fail')
+        if not (data and post_id):
+            return UpdatePost(ok=False, message='Fail')
+        data['update_time'] = datetime.now()
+        session.execute(metadata.tables['posts'].update().where(metadata.tables['posts'].c.post_id == post_id), data)
+        session.commit()
+        return UpdatePost(ok=True, message='Success')
 
 
 class Mutation(graphene.ObjectType):

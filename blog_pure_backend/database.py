@@ -7,7 +7,6 @@ from sqlalchemy import create_engine, MetaData
 
 database_url = os.environ['database_url']  # example: "postgresql+pg8000://user:password@host/blog"
 engine = create_engine(database_url)
-meta = MetaData(engine)
-meta.reflect()
+metadata = MetaData(engine)
 session_factory = sessionmaker(bind=engine)
 session = scoped_session(session_factory, scopefunc=_app_ctx_stack.__ident_func__)
