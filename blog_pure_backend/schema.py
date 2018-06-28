@@ -9,8 +9,7 @@ from graphene.types import Scalar
 from graphql.language import ast
 
 from .database import metadata, session
-
-salt = 'sc&#of78'
+from .config import SALT
 
 
 class YearTime(Scalar):
@@ -113,7 +112,7 @@ def verify_password(s):
     p = session.execute(metadata.tables['password'].select()).fetchone()
     if p is None:
         return False
-    return p.value == hashlib.sha256((salt + s + salt).encode()).hexdigest()
+    return p.value == hashlib.sha256((SALT + s + SALT).encode()).hexdigest()
 
 
 # noinspection PyMethodMayBeStatic
