@@ -1,6 +1,8 @@
 from datetime import datetime
 import hashlib
 import uuid
+from flask import request
+import logging
 from sqlalchemy import select
 from sqlalchemy import and_
 import graphene
@@ -10,6 +12,8 @@ from graphql.language import ast
 
 from .database import metadata, session
 from .config import SALT
+
+logger = logging.getLogger()
 
 
 class YearTime(Scalar):
@@ -105,7 +109,10 @@ class Query(graphene.ObjectType):
         return About(name=row.name, age=row.age, sex=row.sex, github=row.github, mail=row.mail)
 
     def resolve_admin_auth(self, info, password):
-        return verify_password(password)
+        result = verify_password(password)
+        if not result:
+            logger.warning(f'Wrong password: {password}, Ip: {request.headers.get("X-Real-Ip")}')
+        return result
 
 
 def verify_password(s):

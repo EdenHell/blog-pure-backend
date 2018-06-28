@@ -7,5 +7,6 @@ from .config import DATABASE_URL
 
 engine = create_engine(DATABASE_URL)
 metadata = MetaData(engine)
+metadata.reflect()
 session_factory = sessionmaker(bind=engine)
 session = scoped_session(session_factory, scopefunc=_app_ctx_stack.__ident_func__)

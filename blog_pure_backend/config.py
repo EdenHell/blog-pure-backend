@@ -124,7 +124,7 @@ LOGGING = {
         # sqlalchemy.orm:
         # controls logging of various ORM functions. set to logging.INFO for information on mapper configurations.
         'sqlalchemy.engine': {
-            'level': 'DEBUG',
+            'level': 'WARNING',
         }
     },
     'root': {
