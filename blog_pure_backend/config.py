@@ -88,7 +88,7 @@ LOGGING = {
     'disable_existing_loggers': False,
     'formatters': {
         'default': {
-            'format': '%(asctime)s %(requestId)s %(process)d %(filename)s:%(lineno)d [%(levelname)s] %(message)s',
+            'format': '%(asctime)s %(requestId)s %(filename)s:%(lineno)d [%(levelname)s] %(message)s',
             'datefmt': '%Y-%m-%d %H:%M:%S'
         }
     },
