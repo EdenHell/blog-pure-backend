@@ -3,9 +3,7 @@ from logging.handlers import SocketHandler
 import os
 import struct
 import socket
-import sys
 # noinspection PyProtectedMember
-from flask import _app_ctx_stack
 from flask import request
 
 
