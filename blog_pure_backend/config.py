@@ -6,6 +6,7 @@ import socket
 import sys
 # noinspection PyProtectedMember
 from flask import _app_ctx_stack
+from flask import request
 
 
 LOG_COLLECTOR_HOST = os.getenv('LOG_COLLECTOR_HOST')
@@ -78,7 +79,7 @@ class ContextFilter(logging.Filter):
 
     def filter(self, record):
 
-        record.requestId = hash(_app_ctx_stack.__ident_func__()) % ((sys.maxsize + 1) * 2)
+        record.requestId = request.headers.get("X-Request-Id", '')
         return True
 
 
