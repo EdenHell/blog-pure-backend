@@ -1,4 +1,4 @@
-# blog-pure-backend
+# mantis-shrimps
 
 [![python3.6](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org)
 [![Flask1.0.2](https://img.shields.io/badge/flask-1.0.2-green.svg)](http://flask.pocoo.org)
