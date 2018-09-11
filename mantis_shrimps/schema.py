@@ -179,4 +179,5 @@ class Mutation(graphene.ObjectType):
     update_post = UpdatePost.Field()
 
 
+# noinspection PyTypeChecker
 schema = graphene.Schema(query=Query, mutation=Mutation)

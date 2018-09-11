@@ -2,53 +2,27 @@ import logging
 from logging.handlers import SocketHandler
 import os
 import struct
-import socket
-# noinspection PyProtectedMember
-from flask import request
+from flask import request, has_request_context
 
 
-LOG_COLLECTOR_HOST = os.getenv('LOG_COLLECTOR_HOST')
+LOG_SEND_HOST = os.getenv('LOG_SEND_HOST')
+LOG_SEND_PORT = os.getenv('LOG_SEND_PORT') and int(os.getenv('LOG_SEND_PORT'))
 DATABASE_URL = os.environ['DATABASE_URL']  # example: "postgresql+pg8000://user:password@host/blog"
 SALT = 'sc&#of78'
 
 
-class UnixDomainSocketHandler(SocketHandler):
+class StreamSocketHandler(SocketHandler):
 
-    def __init__(self, host, timeout=1):
+    def __init__(self, host, port=None, *, producer=None):
         """
         Initializes the handler with a specific host address and port.
+
         When the attribute *closeOnError* is set to True - if a socket error
         occurs, the socket is silently closed and then reopened on the next
         logging call.
         """
-        logging.Handler.__init__(self)
-        self.host = host
-        self.address = host
-        self.sock = None
-        self.closeOnError = False
-        self.retryTime = None
-        self.timeout = timeout
-        self.producer = __package__.split('.')[0]
-        #
-        # Exponential backoff parameters.
-        #
-        self.retryStart = 1.0
-        self.retryMax = 30.0
-        self.retryFactor = 2.0
-
-    def makeSocket(self, **kwargs):
-        """
-        A factory method which allows subclasses to define the precise
-        type of socket they want.
-        """
-        result = socket.socket(socket.AF_UNIX)
-        result.settimeout(self.timeout)
-        try:
-            result.connect(self.address)
-        except OSError:
-            result.close()  # Issue 19182
-            raise
-        return result
+        super().__init__(host, port)
+        self.producer = producer or __package__.split('.')[0]
 
     def serialization(self, record):
         producer = self.producer.encode()
@@ -77,7 +51,7 @@ class ContextFilter(logging.Filter):
 
     def filter(self, record):
 
-        record.requestId = request.headers.get("X-Request-Id", '')
+        record.requestId = request.headers.get("X-Request-Id", '') if has_request_context() else ''
         return True
 
 
@@ -104,9 +78,10 @@ LOGGING = {
         },
         'unix_domain_socket': {
             'level': 'INFO',
-            '()': UnixDomainSocketHandler,
+            '()': StreamSocketHandler,
             'formatter': 'default',
-            'host': LOG_COLLECTOR_HOST,
+            'host': LOG_SEND_HOST,
+            'port': LOG_SEND_PORT,
             'filters': ['contextual']
         }
     },
@@ -128,6 +103,6 @@ LOGGING = {
     },
     'root': {
         'level': 'DEBUG',
-        'handlers': ['unix_domain_socket' if LOG_COLLECTOR_HOST else 'console']
+        'handlers': ['unix_domain_socket' if LOG_SEND_HOST else 'console']
     }
 }
