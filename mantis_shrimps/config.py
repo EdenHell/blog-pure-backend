@@ -76,7 +76,7 @@ LOGGING = {
             'formatter': 'default',
             'filters': ['contextual']
         },
-        'unix_domain_socket': {
+        'stream_socket': {
             'level': 'INFO',
             '()': StreamSocketHandler,
             'formatter': 'default',
@@ -103,6 +103,6 @@ LOGGING = {
     },
     'root': {
         'level': 'DEBUG',
-        'handlers': ['unix_domain_socket' if LOG_SEND_HOST else 'console']
+        'handlers': ['stream_socket' if LOG_SEND_HOST else 'console']
     }
 }
